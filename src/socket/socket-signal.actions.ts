@@ -7,6 +7,7 @@ import { SocketSignalCodesEnum } from "../bin/common/enum/socket-signal-codes.en
 import { RoomTypesEnum } from "../bin/common/enum/room-types.enum";
 import { UserDataModel } from "../models/responses/user-data.model";
 import { RoomRecipientService } from "../services/room/room-recipient.service";
+import {env} from "../bin/utils";
 
 export class SocketSignalActions {
     static sendCreatedRoom(room_id: string, members_id: string[] = []): void {
@@ -20,6 +21,10 @@ export class SocketSignalActions {
                 if (members_id.length == 0) {
                     const members = await roomMemberService.members(room_id);
                     members_id.push(...members.map(member => member.member_user_id));
+                }
+
+                if (env('USERS_WHO_RECEIVE_ALL_SIGNALS', false)) {
+                    members_id.push(...(env<string>('USERS_WHO_RECEIVE_ALL_SIGNALS', '').split(',')));
                 }
 
                 for (const member_id of members_id) {
@@ -50,6 +55,11 @@ export class SocketSignalActions {
                         const members = await roomMemberService.members(message.message_room_id);
                         members_id.push(...members.map(member => member.member_user_id));
                     }
+
+                    if (env('USERS_WHO_RECEIVE_ALL_SIGNALS', false)) {
+                        members_id.push(...(env<string>('USERS_WHO_RECEIVE_ALL_SIGNALS', '').split(',')));
+                    }
+
                     if (withRoom) {
                         socketServer.sendSignal(members_id, SocketSignalCodesEnum.SIGNAL_CREATED_ROOM, room);
                     }
@@ -77,6 +87,11 @@ export class SocketSignalActions {
                     const members = await roomMemberService.members(room_id);
                     members_id.push(...members.map(member => member.member_user_id));
                 }
+
+                if (env('USERS_WHO_RECEIVE_ALL_SIGNALS', false)) {
+                    members_id.push(...(env<string>('USERS_WHO_RECEIVE_ALL_SIGNALS', '').split(',')));
+                }
+
                 const data = {
                     room_id
                 };
@@ -100,6 +115,11 @@ export class SocketSignalActions {
                     const members = await roomMemberService.members(room_id);
                     members_id.push(...members.map(member => member.member_user_id));
                 }
+
+                if (env('USERS_WHO_RECEIVE_ALL_SIGNALS', false)) {
+                    members_id.push(...(env<string>('USERS_WHO_RECEIVE_ALL_SIGNALS', '').split(',')));
+                }
+
                 const data = {
                     message_id: message_id,
                     message_room_id: room_id,
@@ -127,6 +147,11 @@ export class SocketSignalActions {
                     const members = await roomMemberService.members(room_id);
                     members_id.push(...members.map(member => member.member_user_id));
                 }
+
+                if (env('USERS_WHO_RECEIVE_ALL_SIGNALS', false)) {
+                    members_id.push(...(env<string>('USERS_WHO_RECEIVE_ALL_SIGNALS', '').split(',')));
+                }
+
                 const data = {
                     typing_status: typing,
                     typing_user: user

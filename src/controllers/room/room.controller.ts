@@ -42,13 +42,13 @@ export class RoomController {
         }
 
         const typeListOfNumber = typeList.map(name => RoomTypesEnum[name]);
-
+        const isFullAccess = [UserRolesEnum.GOD, UserRolesEnum.ADMIN, UserRolesEnum.MODER].includes(req.credentials.user_role);
         const roomService = getCustomService(RoomService);
-        const availableRooms = await roomService.availableRoomIdList(req.credentials.user_id);
+        const availableRooms = isFullAccess ? [] : await roomService.availableRoomIdList(req.credentials.user_id);
 
         const rooms = await roomService.allRooms({
             take, skip,
-            where: {
+            where: isFullAccess ? { room_type: In(typeListOfNumber) } : {
                 room_type: In(typeListOfNumber),
                 room_id: In(availableRooms)
             }
@@ -60,7 +60,7 @@ export class RoomController {
 
     @Post('/create')
     async create(@Req() req: IRequest, @Res() res: Response, @Body() data: RoomRequestModel): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canCreateRoom(req.credentials.user_id))) {
+        if (!(await getCustomService(AccessService).canCreateRoom(req.credentials))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -100,7 +100,7 @@ export class RoomController {
 
     @Put('/:room_id/update')
     async update(@Req() req: IRequest, @Res() res: Response, @Param('room_id') roomId: string, @Body() data: RoomRequestModel): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canEditRoom(req.credentials.user_id, roomId))) {
+        if (!(await getCustomService(AccessService).canEditRoom(req.credentials, roomId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -140,7 +140,7 @@ export class RoomController {
 
     @Post('/:room_id/add-member')
     async addMember(@Req() req: IRequest, @Res() res: Response, @Param('room_id') roomId: string, @Body() data: RoomMemberRequestModel): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canEditRoom(req.credentials.user_id, roomId))) {
+        if (!(await getCustomService(AccessService).canEditRoom(req.credentials, roomId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -172,7 +172,7 @@ export class RoomController {
 
     @Delete('/:room_id/remove-member')
     async removeMember(@Req() req: IRequest, @Res() res: Response, @Param('room_id') roomId: string, @Body() data: RoomMemberRequestModel): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canEditRoom(req.credentials.user_id, roomId))) {
+        if (!(await getCustomService(AccessService).canEditRoom(req.credentials, roomId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -199,7 +199,7 @@ export class RoomController {
 
     @Get('/:room_id/join')
     async join(@Req() req: IRequest, @Res() res: Response, @Param('room_id') roomId: string): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canJoinRoom(req.credentials.user_id, roomId))) {
+        if (!(await getCustomService(AccessService).canJoinRoom(req.credentials, roomId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -224,7 +224,7 @@ export class RoomController {
 
     @Get('/:room_id/leave')
     async leave(@Req() req: IRequest, @Res() res: Response, @Param('room_id') roomId: string): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canJoinRoom(req.credentials.user_id, roomId))) {
+        if (!(await getCustomService(AccessService).canJoinRoom(req.credentials, roomId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -242,7 +242,7 @@ export class RoomController {
 
     @Get('/:room_id/subscribe')
     async subscribe(@Req() req: IRequest, @Res() res: Response, @Param('room_id') roomId: string): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canSubscribeRoom(req.credentials.user_id, roomId))) {
+        if (!(await getCustomService(AccessService).canSubscribeRoom(req.credentials, roomId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -269,7 +269,7 @@ export class RoomController {
 
     @Get('/:room_id/unsubscribe')
     async unsubscribe(@Req() req: IRequest, @Res() res: Response, @Param('room_id') roomId: string): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canSubscribeRoom(req.credentials.user_id, roomId))) {
+        if (!(await getCustomService(AccessService).canSubscribeRoom(req.credentials, roomId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -296,7 +296,7 @@ export class RoomController {
 
     @Delete('/:room_id')
     async delete(@Req() req: IRequest, @Res() res: Response, @Param('room_id') roomId: string): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canDeleteRoom(req.credentials.user_id, roomId))) {
+        if (!(await getCustomService(AccessService).canDeleteRoom(req.credentials, roomId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 

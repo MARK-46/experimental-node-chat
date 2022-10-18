@@ -27,7 +27,7 @@ export class RoomMessageController {
                @QueryParam('expand_reply') expandReply: string,
                @QueryParam('expand_reply_files') expandReplyFiles: string,
                @QueryParam('expand_recipients') expandRecipients: string): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canJoinRoom(req.credentials.user_id, roomId))) {
+        if (!(await getCustomService(AccessService).canJoinRoom(req.credentials, roomId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -51,7 +51,7 @@ export class RoomMessageController {
     @Post('/create')
     async create(@Req() req: IRequest, @Res() res: Response, @Param('room_id') roomId: string,
                  @Body() data: RoomMessageRequestModel): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canCreateRoomMessage(req.credentials.user_id, roomId))) {
+        if (!(await getCustomService(AccessService).canCreateRoomMessage(req.credentials, roomId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -99,7 +99,7 @@ export class RoomMessageController {
     @Put('/:message_id/update')
     async update(@Req() req: IRequest, @Res() res: Response, @Param('room_id') roomId: string,
             @Param('message_id') messageId: string, @Body() data: RoomMessageRequestModel): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canEditRoomMessage(req.credentials.user_id, roomId, messageId))) {
+        if (!(await getCustomService(AccessService).canEditRoomMessage(req.credentials, roomId, messageId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
@@ -147,7 +147,7 @@ export class RoomMessageController {
     @Delete('/:message_id')
     async delete(@Req() req: IRequest, @Res() res: Response,
                  @Param('room_id') roomId: string, @Param('message_id') messageId: string): Promise<Response<IResponse>> {
-        if (!(await getCustomService(AccessService).canDeleteRoomMessage(req.credentials.user_id, roomId, messageId))) {
+        if (!(await getCustomService(AccessService).canDeleteRoomMessage(req.credentials, roomId, messageId))) {
             return responseError(res, null, {}, L('FORBIDDEN', req.language_code), StatusCodesEnum.FORBIDDEN);
         }
 
